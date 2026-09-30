@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.Emittable
+import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.ExperimentalGlanceRemoteViewsApi
 import androidx.glance.appwidget.GlanceRemoteViews
@@ -17,6 +18,7 @@ import androidx.glance.appwidget.multiprocess.MultiProcessGlanceAppWidget
 import androidx.glance.layout.EmittableColumn
 import androidx.glance.text.EmittableText
 import androidx.test.core.app.ApplicationProvider
+import io.github.expo.peek.glance.PeekGlanceEmittable
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -59,6 +61,35 @@ class EmittableTreeTest {
     }
 
     assertTrue(error.message.orEmpty().contains("shared", ignoreCase = true))
+  }
+
+  @Test
+  fun unmarkedCustomNodeIsRejectedBeforeComposition() {
+    val root = EmittableColumn().also {
+      it.children += object : Emittable {
+        override var modifier: GlanceModifier = GlanceModifier
+        override fun copy(): Emittable = error("Validation must not copy nodes")
+      }
+    }
+
+    val error = assertThrows(IllegalArgumentException::class.java) {
+      validateEmittableTree(root)
+    }
+
+    assertTrue(error.message.orEmpty().contains("at root.children[0]"))
+    assertTrue(error.message.orEmpty().contains("Custom nodes must implement PeekGlanceEmittable"))
+  }
+
+  @Test
+  fun markedCustomNodeIsAcceptedBeforeComposition() {
+    val root = EmittableColumn().also {
+      it.children += object : PeekGlanceEmittable {
+        override var modifier: GlanceModifier = GlanceModifier
+        override fun copy(): Emittable = error("Validation must not copy nodes")
+      }
+    }
+
+    validateEmittableTree(root)
   }
 
   @Test

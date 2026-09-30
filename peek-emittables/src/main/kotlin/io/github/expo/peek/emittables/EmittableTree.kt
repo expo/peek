@@ -1,13 +1,37 @@
-@file:Suppress("RestrictedApiAndroidX")
+@file:Suppress(
+  "RestrictedApiAndroidX",
+  "INVISIBLE_MEMBER",
+  "INVISIBLE_REFERENCE",
+)
 
 package io.github.expo.peek.emittables
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.glance.Emittable
+import androidx.glance.EmittableButton
+import androidx.glance.EmittableImage
 import androidx.glance.EmittableWithChildren
 import androidx.glance.GlanceComposable
 import androidx.glance.GlanceNode
+import androidx.glance.appwidget.EmittableAndroidRemoteViews
+import androidx.glance.appwidget.EmittableCheckBox
+import androidx.glance.appwidget.EmittableCircularProgressIndicator
+import androidx.glance.appwidget.EmittableIgnoreResult
+import androidx.glance.appwidget.EmittableLinearProgressIndicator
+import androidx.glance.appwidget.EmittableRadioButton
+import androidx.glance.appwidget.EmittableSizeBox
+import androidx.glance.appwidget.EmittableSwitch
+import androidx.glance.appwidget.RemoteViewsRoot
+import androidx.glance.appwidget.lazy.EmittableLazyColumn
+import androidx.glance.appwidget.lazy.EmittableLazyListItem
+import androidx.glance.appwidget.lazy.EmittableLazyVerticalGrid
+import androidx.glance.appwidget.lazy.EmittableLazyVerticalGridListItem
+import androidx.glance.layout.EmittableBox
+import androidx.glance.layout.EmittableColumn
+import androidx.glance.layout.EmittableRow
+import androidx.glance.layout.EmittableSpacer
+import androidx.glance.text.EmittableText
 import io.github.expo.peek.glance.PeekGlanceEmittable
 import java.util.IdentityHashMap
 
@@ -40,7 +64,7 @@ public fun validateEmittableTree(root: Emittable) {
       "A Glance emittable is shared or cyclic: $path already appeared at $previousPath"
     }
 
-    require(node.javaClass.name.startsWith("androidx.glance.") || node is PeekGlanceEmittable) {
+    require(node.isSupportedEmittable()) {
       "Unsupported emittable ${node.javaClass.name} at $path. " +
         "Custom nodes must implement PeekGlanceEmittable."
     }
@@ -51,4 +75,30 @@ public fun validateEmittableTree(root: Emittable) {
   }
 
   visit(root, "root")
+}
+
+// Check types rather than class names, which R8 can change in release builds.
+private fun Emittable.isSupportedEmittable(): Boolean = when (this) {
+  is EmittableBox,
+  is EmittableColumn,
+  is EmittableRow,
+  is EmittableSpacer,
+  is EmittableText,
+  is EmittableButton,
+  is EmittableImage,
+  is EmittableCheckBox,
+  is EmittableRadioButton,
+  is EmittableSwitch,
+  is EmittableCircularProgressIndicator,
+  is EmittableLinearProgressIndicator,
+  is EmittableLazyColumn,
+  is EmittableLazyListItem,
+  is EmittableLazyVerticalGrid,
+  is EmittableLazyVerticalGridListItem,
+  is EmittableAndroidRemoteViews,
+  is EmittableSizeBox,
+  is EmittableIgnoreResult,
+  is RemoteViewsRoot,
+  is PeekGlanceEmittable -> true
+  else -> false
 }
