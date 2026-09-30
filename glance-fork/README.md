@@ -4,7 +4,7 @@ Peek uses the released Glance `1.2.0` dependency graph and replaces only
 `androidx.glance:glance-appwidget` with this artifact:
 
 ```text
-io.github.expo.peek.forks:glance-appwidget:1.2.0-peek-0.3.1
+io.github.expo.peek.forks:glance-appwidget
 ```
 
 The fork adds two internal translation hooks:
@@ -43,18 +43,7 @@ unrelated external AOSP projects are allowed to be absent from the standalone ch
 
 ## Consumer resolution
 
-Consumers apply the project plugin and keep declaring official Glance modules:
-
-```kotlin
-plugins {
-  id("io.github.expo.peek.glance-fork") version "0.3.1"
-}
-
-dependencies {
-  implementation("androidx.glance:glance-appwidget:1.2.0")
-  implementation("androidx.glance:glance-appwidget-multiprocess:1.2.0")
-}
-```
+Consumers apply the project plugin and keep declaring official Glance modules.
 
 The plugin replaces every direct or transitive AppWidget request with the fork.
 It rejects any other `androidx.glance` version so the fork cannot be combined

@@ -1,7 +1,7 @@
 package io.github.expo.peek.gradle
 
 public object PeekGlanceForkCoordinates {
-  public const val peekVersion: String = "0.3.1"
+  public const val peekVersion: String = "0.3.2"
   public const val supportedGlanceVersion: String = "1.2.0"
   public const val forkVersion: String = "$supportedGlanceVersion-peek-$peekVersion"
 

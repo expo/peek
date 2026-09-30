@@ -7,7 +7,7 @@ plugins {
 
 group = "io.github.expo.peek.forks"
 def upstreamVersion = "1.2.0"
-def peekVersion = "0.3.1"
+def peekVersion = "0.3.2"
 version = "${upstreamVersion}-peek-${peekVersion}"
 
 def forkArtifactId = "glance-appwidget"
