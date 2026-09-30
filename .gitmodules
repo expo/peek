@@ -1,0 +1,4 @@
+[submodule "glance-fork/androidx"]
+	path = glance-fork/androidx
+	url = https://github.com/expo/peek-androidx.git
+	shallow = true

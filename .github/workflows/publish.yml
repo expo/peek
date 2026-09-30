@@ -1,0 +1,88 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish Glance resolver plugin
+        run: |
+          ./gradlew \
+            -p peek-glance-gradle-plugin \
+            publishAndReleaseToMavenCentral \
+            --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+
+      - name: Publish Glance fork
+        working-directory: glance-fork/androidx
+        run: |
+          env -u SNAPSHOT \
+            ANDROIDX_JDK21="$JAVA_HOME" \
+            ALLOW_MISSING_PROJECTS=1 \
+            ALLOW_PUBLIC_REPOS=1 \
+            PROJECT_PREFIX=:glance \
+            ./gradlew \
+            :glance:glance-appwidget:bundleReleaseAar \
+            :glance:glance-appwidget:sourceJarRelease \
+            :glance:glance-appwidget:generatePomFileForMavenPublication \
+            -Pandroidx.validateProjectStructure=false \
+            --no-configuration-cache
+
+          ../../gradlew \
+            -p ../../glance-fork/publisher \
+            publishToMavenLocal \
+            publishAndReleaseToMavenCentral \
+            -Dmaven.repo.local="$GITHUB_WORKSPACE/glance-fork/build/fork-repository" \
+            --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+
+      - name: Publish and release
+        run: |
+          ./gradlew \
+            publishAndReleaseToMavenCentral \
+            -Dmaven.repo.local="$GITHUB_WORKSPACE/glance-fork/build/fork-repository" \
+            --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}

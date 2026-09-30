@@ -1,0 +1,92 @@
+import com.vanniktech.maven.publish.DeploymentValidation
+import groovy.util.Node
+
+plugins {
+    id("com.vanniktech.maven.publish.base") version "0.36.0"
+}
+
+group = "io.github.expo.peek.forks"
+def upstreamVersion = "1.2.0"
+def peekVersion = "0.3.1"
+version = "${upstreamVersion}-peek-${peekVersion}"
+
+def forkArtifactId = "glance-appwidget"
+def forkBuildDirectory = layout.projectDirectory.dir(
+    "../androidx/.gradle/androidx-out/androidx/glance/glance-appwidget/build"
+)
+def forkArtifact = { String path -> forkBuildDirectory.file(path) }
+
+publishing {
+    publications {
+        fork(MavenPublication) {
+            groupId = project.group.toString()
+            artifactId = forkArtifactId
+            version = project.version.toString()
+
+            artifact(forkArtifact("outputs/aar/glance-appwidget-release.aar")) {
+                extension = "aar"
+            }
+            artifact(forkArtifact("libs/glance-appwidget-${upstreamVersion}-sources.jar")) {
+                classifier = "sources"
+                extension = "jar"
+            }
+            pom {
+                packaging = "aar"
+                name = "Glance For App Widgets"
+                description = "Glance AppWidget with Peek RemoteViews translation extensions."
+                inceptionYear = "2026"
+                url = "https://github.com/expo/peek-androidx"
+                licenses {
+                    license {
+                        name = "The Apache Software License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "repo"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "expo"
+                        name = "Expo"
+                        url = "https://github.com/expo"
+                    }
+                }
+                scm {
+                    url = "https://github.com/expo/peek-androidx"
+                    connection = "scm:git:git://github.com/expo/peek-androidx.git"
+                    developerConnection = "scm:git:ssh://git@github.com/expo/peek-androidx.git"
+                }
+            }
+
+            pom.withXml {
+                def sourcePom = new XmlParser(false, false).parse(
+                    forkArtifact("publications/maven/pom-default.xml").asFile
+                )
+                def targetPom = asNode()
+
+                Closure<Node> appendCopy
+                appendCopy = { Node source, Node target ->
+                    def copy = target.appendNode(source.name(), new LinkedHashMap(source.attributes()))
+                    source.children().each { child ->
+                        if (child instanceof Node) {
+                            appendCopy(child, copy)
+                        } else {
+                            copy.children().add(child)
+                        }
+                    }
+                    copy
+                }
+
+                sourcePom.children()
+                    .findAll { it instanceof Node && it.name() == "dependencies" }
+                    .each { appendCopy(it, targetPom) }
+            }
+        }
+    }
+}
+
+mavenPublishing {
+    publishToMavenCentral(true, DeploymentValidation.PUBLISHED)
+    if (project.findProperty("signingInMemoryKey") != null) {
+        signAllPublications()
+    }
+}

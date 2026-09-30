@@ -1,0 +1,31 @@
+[versions]
+peek = "0.3.1"
+agp = "8.12.2"
+kotlin = "2.1.20"
+compileSdk = "37"
+minSdk = "23"
+targetSdk = "37"
+androidx-core = "1.18.0"
+androidx-glance = "1.2.0"
+androidx-test-core = "1.7.0"
+junit = "4.13.2"
+kotlinx-coroutines = "1.9.0"
+robolectric = "4.16.1"
+vanniktech-mavenPublish = "0.30.0"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "androidx-glance" }
+androidx-glance-appwidget-multiprocess = { module = "androidx.glance:glance-appwidget-multiprocess", version.ref = "androidx-glance" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
+junit = { module = "junit:junit", version.ref = "junit" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+vanniktech-mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-mavenPublish" }

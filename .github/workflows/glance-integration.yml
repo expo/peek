@@ -1,0 +1,40 @@
+name: Glance integration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Glance and Peek integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish local integration artifacts
+        run: ./scripts/publish-local.sh
+
+      - name: Run library checks
+        run: ./gradlew testDebugUnitTest assembleDebug
+
+      - name: Test standalone consumer
+        run: >-
+          ./gradlew -p integration-tests/standalone-consumer
+          assembleDebug verifyStandaloneResolution
+          --refresh-dependencies
